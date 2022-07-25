@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nfs-client-provisioner0
+  namespace: nfs-provisioner0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nfs-client-provisioner0
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: nfs-client-provisioner0
+    spec:
+      restartPolicy: Always
+      serviceAccountName: nfs-client-provisioner0
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 30
+      securityContext: {}
+      #        - allowPrivilegeEscalation: restricted
+      containers:
+        - name: nfs-client-provisioner0
+          image: 'ibmcom/nfs-client-provisioner-ppc64le:latest'
+          env:
+            - name: PROVISIONER_NAME
+              value: nfs-storage
+            - name: NFS_SERVER
+              value: <NFS_IP_Address_env3>
+            - name: NFS_PATH
+              value: <NFS_PATH>
+          resources: {}
+          volumeMounts:
+            - name: nfs-client-root
+              mountPath: /persistentvolumes
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: true
+            allowedCapabilities: [ "ALL" ]
+      serviceAccount: nfs-client-provisioner0
+      volumes:
+        - name: nfs-client-root
+          nfs:
+            server: <NFS_IP_Address_env3>
+            path: <NFS_PATH>
+      dnsPolicy: ClusterFirst
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
